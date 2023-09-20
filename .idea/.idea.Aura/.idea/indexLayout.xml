@@ -4,6 +4,7 @@
     <attachedFolders />
     <explicitIncludes>
       <Path>Source/Aura/Player/ECMPlayerController.cpp</Path>
+      <Path>Source/Aura/Player/ECMPlayerController.h</Path>
     </explicitIncludes>
     <explicitExcludes />
   </component>
