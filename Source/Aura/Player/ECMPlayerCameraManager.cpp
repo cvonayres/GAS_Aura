@@ -1,7 +1,9 @@
 // Copyright Electronic CAD Monkey [ECM]
 
-
 #include "ECMPlayerCameraManager.h"
+
+#include "ECMPlayerController.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AECMPlayerCameraManager::AECMPlayerCameraManager()
 {
@@ -11,76 +13,96 @@ void AECMPlayerCameraManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Controller = GetOwningPlayerController();
+	Controller = CastChecked<AECMPlayerController>(GetOwningPlayerController());
 
 	if(Controller) 
 	{
 		ControlledPawn = Controller->GetPawn<APawn>();
 	}
+
+	// Assign default view and rotation based on view mode
+	if (Controller->ViewMode == EViewMode::FPV)
+	{
+		VOffset = FPVOffset;
+		ROffset = FPVRotation;
+	}
+	else if(Controller->ViewMode  == EViewMode::TPV)
+	{
+		VOffset = TPVOffset;
+		ROffset = TPVRotation;
+	}
+	else if(Controller->ViewMode  == EViewMode::TDV)
+	{
+		VOffset = TDVOffset;
+		ROffset = TDVRotation;
+	}
 }
 
-void AECMPlayerCameraManager::GetValves(FVector& Location, FRotator& Rotation) const
-{
-	if (UseTopDownView)
-	{
-		GetTDValves(Location,Rotation);
-	}
-	else
-	{
-		GetTPFValves(Location,Rotation);
-	}
-}
-
-// Calculate new location and rotation valves for Blueprint Camera Update.
-void AECMPlayerCameraManager::GetTPFValves(FVector& Location, FRotator& Rotation) const
+// Called in BP on camera update
+FVector AECMPlayerCameraManager::GetUpdatedLocation() const
 {
 	if (Controller)
 	{
-		const FRotator ControllerRotation = Controller->GetControlRotation();
-		const FRotator YawRotation (0.f, ControllerRotation.Yaw, 0.f);
-	
-		const FVector OffsetX = TPFOffset.X * FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		const FVector OffsetY = TPFOffset.Y * FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		const FVector OffsetZ = TPFOffset.Z * FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Z);
-	
+		const FVector OffsetX = VOffset.X * GetCameraVector(EVectorDirection::Fwd);
+	//	const FVector OffsetY = VOffset.Y * GetCameraVector(EVectorDirection::Right);
+	//	const FVector OffsetZ = VOffset.Z * GetCameraVector(EVectorDirection::Up);
+
 		if (ControlledPawn)
 		{
-			const FVector NewLocation = ControlledPawn->GetActorLocation() + OffsetX + OffsetY + OffsetZ;
-
-			Rotation = YawRotation;
-			Location = NewLocation;
+			const FVector NewLocation = ControlledPawn->GetActorLocation() + OffsetX;// + OffsetY + OffsetZ;
+			//Test = OffsetX;
+			return NewLocation;
 		}
 	}
+	return VOffset;
 }
-void AECMPlayerCameraManager::GetTDValves(FVector& Location, FRotator& Rotation) const
+FRotator AECMPlayerCameraManager::GetUpdatedRotation() const
 {
-	if (ControlledPawn)
+	if(Controller->ViewMode  == EViewMode::FPV)
 	{
-		Rotation = TDRotation;
-		Location = ControlledPawn->GetActorLocation() + TDOffset;
+		return GetOwningPlayerController()->GetControlRotation();
 	}
+	else if(Controller->ViewMode  == EViewMode::TPV)
+	{
+		return GetOwningPlayerController()->GetControlRotation();
+	}
+	else if(Controller->ViewMode  == EViewMode::TDV)
+	{
+		return ROffset;
+	}
+	return ROffset;
 }
 
-// Update Camera Zoom
-void AECMPlayerCameraManager::UpdateZoom(float valve)
+// Bound to Action in Player Controller
+void AECMPlayerCameraManager::UpdateZoom(const float valve)
 {
 	if(!ZoomCurve) return ;
 
-	const float CurveValve = ZoomCurve->GetFloatValue(valve);
-	
-	if (UseTopDownView)
+	const float CurveValve = -(ZoomCurve->GetFloatValue(valve));
+	const FVector Adjustment = GetCameraVector(EVectorDirection::Fwd) * CurveValve;
+	VOffset = ClampVector(VOffset + Adjustment,ZoomMIN,ZoomMAX);
+	Test = VOffset;
+}
+
+// Gets forward, right or Up vector from camera rotation
+FVector AECMPlayerCameraManager::GetCameraVector(const EVectorDirection Direction) const
+{
+	FVector Vector;
+	if(Direction == EVectorDirection::Fwd)
 	{
-		UpdateZoomInternal(TDOffset,CurveValve);
+		Vector = UKismetMathLibrary::GetForwardVector(GetCameraRotation());
+	}
+	else if(Direction == EVectorDirection::Right)
+	{
+		Vector = UKismetMathLibrary::GetRightVector(GetCameraRotation());
+	}
+	else if(Direction == EVectorDirection::Up)
+	{
+		Vector = UKismetMathLibrary::GetUpVector(GetCameraRotation());
 	}
 	else
 	{
-		UpdateZoomInternal(TPFOffset,CurveValve);
+		Vector = FVector(0,0,0);
 	}
-}
-void AECMPlayerCameraManager::UpdateZoomInternal(FVector &Offset, float Value) const
-{
-	const FVector OffsetRef = Offset;
-	const float UpdatedOffsetX = OffsetRef.X + Value;
-
-	Offset = FVector (FMath::Clamp(UpdatedOffsetX,ZoomMIN,ZoomMAX),OffsetRef.Y,OffsetRef.Z);
+	return Vector;
 }

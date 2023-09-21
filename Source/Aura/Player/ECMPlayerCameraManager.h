@@ -6,6 +6,16 @@
 #include "Camera/PlayerCameraManager.h"
 #include "ECMPlayerCameraManager.generated.h"
 
+class AECMPlayerController;
+
+UENUM()
+enum EVectorDirection
+{
+	Fwd    UMETA(DisplayName = "Forward Vector"),
+	Right      UMETA(DisplayName = "Right Vector"),
+	Up   UMETA(DisplayName = "Up Vector"),
+  };
+
 UCLASS()
 class AURA_API AECMPlayerCameraManager : public APlayerCameraManager
 {
@@ -14,41 +24,53 @@ class AURA_API AECMPlayerCameraManager : public APlayerCameraManager
 public:
 	AECMPlayerCameraManager();
 
-	// Zoom public function
+	// Bound to Input in Player Controller
 	void UpdateZoom(float valve);
 	
 protected:
 	virtual void BeginPlay() override;
 
+	// Camera Functions
 	UFUNCTION(BlueprintPure)
-	void GetValves(FVector &Location, FRotator &Rotation) const;
+	FVector GetUpdatedLocation() const;
+	UFUNCTION(BlueprintPure)
+	FRotator GetUpdatedRotation() const;
 
 	// View Settings
-	UPROPERTY(EditAnywhere, Category="Camera Settings")
-	bool UseTopDownView;
-	UPROPERTY(EditAnywhere, Category="Camera Settings")
-	FVector TPFOffset;
-	UPROPERTY(EditAnywhere, Category="Camera Settings")
-	FVector TDOffset;
-	UPROPERTY(EditAnywhere, Category="Camera Settings")
-	FRotator TDRotation;
-	
+	UPROPERTY(EditDefaultsOnly, Category="Camera Settings|FirstPersonView")
+	FVector FPVOffset;
+	UPROPERTY(EditAnywhere, Category="Camera Settings|FirstPersonView")
+	FRotator FPVRotation;
+	UPROPERTY(EditDefaultsOnly, Category="Camera Settings|ThirdPersonView")
+	FVector TPVOffset;
+	UPROPERTY(EditAnywhere, Category="Camera Settings|ThirdPersonView")
+	FRotator TPVRotation;
+	UPROPERTY(EditDefaultsOnly, Category="Camera Settings|TopDownView")
+	FVector TDVOffset;
+	UPROPERTY(EditAnywhere, Category="Camera Settings|TopDownView")
+	FRotator TDVRotation;
+
 	// Zoom Controls
 	UPROPERTY(EditAnywhere, Category="Camera Settings|Zoom")
 	UCurveFloat* ZoomCurve;
 	UPROPERTY(EditAnywhere, Category="Camera Settings|Zoom")
-	float ZoomMAX;
+	FVector ZoomMAX;
 	UPROPERTY(EditAnywhere, Category="Camera Settings|Zoom")
-	float ZoomMIN;
-	
+	FVector ZoomMIN;
+	UPROPERTY(BlueprintReadOnly, Category="Camera Settings|Zoom")
+	FVector Test;
 private:
+	//Referances
 	UPROPERTY(VisibleAnywhere, Category="Referances")
-	APlayerController* Controller;
+	AECMPlayerController* Controller;
 	UPROPERTY(VisibleAnywhere, Category="Referances")
 	APawn* ControlledPawn;
 
-	void GetTPFValves(FVector &Location, FRotator &Rotation) const;
-	void GetTDValves(FVector &Location, FRotator &Rotation) const;
-	void UpdateZoomInternal(FVector &Offset, float Value) const;
+	//Private Variables
+	FVector VOffset;
+	FRotator ROffset;
+	
+	//Private functions
+	FVector GetCameraVector(EVectorDirection Direction) const;
 };
 

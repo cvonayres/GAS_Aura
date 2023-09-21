@@ -10,5 +10,15 @@ UCLASS()
 class AURA_API AECMCharacterPlayer : public AECMCharacterBase
 {
 	GENERATED_BODY()
+
+public:
+	AECMCharacterPlayer();
+	UPROPERTY(BlueprintReadOnly, Category="Referance")
+	class AECMPlayerController* ControllerRef;
+
+protected:
+	virtual void BeginPlay() override;
 	
+private:	
+	void UpdatedViewMode();
 };

@@ -10,6 +10,14 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 
+UENUM()
+enum EViewMode
+{
+	FPV    UMETA(DisplayName = "First Person View"),
+	TPV      UMETA(DisplayName = "Third Person View"),
+	TDV   UMETA(DisplayName = "Top Down View"),
+  };
+
 UCLASS()
 class AURA_API AECMPlayerController : public APlayerController
 {
@@ -17,6 +25,9 @@ class AURA_API AECMPlayerController : public APlayerController
 public:
 	AECMPlayerController();
 	
+	UPROPERTY(EditDefaultsOnly, Category="Camera Settings")
+	TEnumAsByte<EViewMode> ViewMode;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
