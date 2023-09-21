@@ -15,6 +15,8 @@ AECMCharacterPlayer::AECMCharacterPlayer()
 	
 }
 
+
+
 void AECMCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
@@ -22,7 +24,6 @@ void AECMCharacterPlayer::BeginPlay()
 	ControllerRef = Cast<AECMPlayerController>(GetController());
 
 	UpdatedViewMode();
-
 }
 
 void AECMCharacterPlayer::UpdatedViewMode()
@@ -46,3 +47,5 @@ void AECMCharacterPlayer::UpdatedViewMode()
 		bUseControllerRotationYaw = false;
 	}
 }
+
+

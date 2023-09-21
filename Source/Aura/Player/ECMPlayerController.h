@@ -8,6 +8,7 @@
 
 class UInputMappingContext;
 class UInputAction;
+class IECMHightlightInterface;
 struct FInputActionValue;
 
 UENUM()
@@ -24,6 +25,8 @@ class AURA_API AECMPlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	AECMPlayerController();
+
+	virtual void PlayerTick(float DeltaTime) override;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Camera Settings")
 	TEnumAsByte<EViewMode> ViewMode;
@@ -31,6 +34,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
+
 	
 private:
 	UPROPERTY(VisibleAnywhere, Category="Referances")
@@ -46,5 +50,9 @@ private:
 
 	void Move(const FInputActionValue& InputActionValve);
 	void ZoomCamera(const FInputActionValue& InputActionValve);
+
+	void CurserTrace();
+	IECMHightlightInterface* LastActor;
+	IECMHightlightInterface* ThisActor;
 
 };

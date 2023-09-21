@@ -4,10 +4,18 @@
 #include "ECMPlayerCameraManager.h"
 #include "EnhancedInputSubsystems.h"
 #include  "EnhancedInputComponent.h"
+#include "Aura/Interactions/ECMHightlightInterface.h"
 
 AECMPlayerController::AECMPlayerController()
 {
 	bReplicates = true;
+}
+
+void AECMPlayerController::PlayerTick(float DeltaTime)
+{
+	Super::PlayerTick(DeltaTime);
+
+	CurserTrace();
 }
 
 void AECMPlayerController::BeginPlay()
@@ -65,4 +73,42 @@ void AECMPlayerController::Move(const FInputActionValue& InputActionValve)
 void AECMPlayerController::ZoomCamera(const FInputActionValue& InputActionValve)
 {
 	CameraManager->UpdateZoom(InputActionValve.Get<float>());
+}
+
+void AECMPlayerController::CurserTrace()
+{
+	FHitResult CursorHit;
+	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
+	if (!CursorHit.bBlockingHit) return;
+	
+	LastActor = ThisActor;
+	ThisActor = Cast<IECMHightlightInterface>(CursorHit.GetActor());
+	
+	/**
+	 *  Line tracefrom cursor/ There are several scenarios:
+	 *	A - LastActor is null && ThisActor is null;
+	 *		- Do nothing
+	 *  B - LastActor is null && ThisActor is vaild;
+	 *		- Hightlight ThisActor
+     *  C - LastActor is vaild && ThisActor is null;
+	 *		- UnHightlight LastActor
+	 *  D - Both actors are valid, but LastActor != This Actor
+	 *		- UnHightlight LastActor, Highligh ThisActor
+	 *  E - Both actors are valid and LastActor == This Actor
+	 *		- Do nothing		
+	 **/
+	
+	if(!LastActor && ThisActor)
+	{
+		ThisActor->HighlightActor();
+	}
+	else if(LastActor && !ThisActor)
+	{
+		LastActor->UnHightlighActor();
+	}
+	else if(LastActor && ThisActor && LastActor != ThisActor)
+	{
+		LastActor->UnHightlighActor();
+		ThisActor->HighlightActor();
+	}
 }

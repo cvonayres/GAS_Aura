@@ -13,12 +13,12 @@ class AURA_API AECMCharacterPlayer : public AECMCharacterBase
 
 public:
 	AECMCharacterPlayer();
-	UPROPERTY(BlueprintReadOnly, Category="Referance")
-	class AECMPlayerController* ControllerRef;
 
 protected:
 	virtual void BeginPlay() override;
-	
-private:	
+
+private:
+	class AECMPlayerController* ControllerRef;
 	void UpdatedViewMode();
+	
 };
