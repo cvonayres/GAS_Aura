@@ -11,5 +11,11 @@ UCLASS()
 class AURA_API AECMCharacterAI : public AECMCharacterBase
 {
 	GENERATED_BODY()
+
+public:
+	AECMCharacterAI();
+
+protected:
+	virtual void BeginPlay() override;
 	
 };

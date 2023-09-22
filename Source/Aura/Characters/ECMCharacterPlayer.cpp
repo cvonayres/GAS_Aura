@@ -3,7 +3,9 @@
 
 #include "ECMCharacterPlayer.h"
 
+#include "AbilitySystemComponent.h"
 #include "Aura/Player/ECMPlayerController.h"
+#include "Aura/Player/ECMPlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AECMCharacterPlayer::AECMCharacterPlayer()
@@ -15,15 +17,34 @@ AECMCharacterPlayer::AECMCharacterPlayer()
 	
 }
 
+void AECMCharacterPlayer::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
 
+	// Controller Reference for the Server
+	ControllerRef = Cast<AECMPlayerController>(NewController);
+
+	// Init ability actor info for the Server
+	InitAbilityActorInfo();
+}
+
+void AECMCharacterPlayer::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// Controller Reference for the Client
+	ControllerRef = Cast<AECMPlayerController>(GetController());
+
+	// Init ability actor info for the client
+	InitAbilityActorInfo();	
+}
 
 void AECMCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ControllerRef = Cast<AECMPlayerController>(GetController());
-
 	UpdatedViewMode();
+	
 }
 
 void AECMCharacterPlayer::UpdatedViewMode()
@@ -31,9 +52,7 @@ void AECMCharacterPlayer::UpdatedViewMode()
 	if(!ControllerRef) return;
 
 	if(ControllerRef->ViewMode == EViewMode::FPV)
-	{
-		
-	}
+	{ }
 	else if (ControllerRef->ViewMode == EViewMode::TPV)
 	{
 		bUseControllerRotationPitch = false;
@@ -46,6 +65,15 @@ void AECMCharacterPlayer::UpdatedViewMode()
 		bUseControllerRotationRoll = false;
 		bUseControllerRotationYaw = false;
 	}
+}
+
+void AECMCharacterPlayer::InitAbilityActorInfo()
+{
+	AECMPlayerState* ECMPlayerState =  GetPlayerState<AECMPlayerState>();
+	check(ECMPlayerState);
+	AbilitySystemComponent =ECMPlayerState->GetAbilitySystemComponent();
+	AbilitySystemComponent->InitAbilityActorInfo(ECMPlayerState, this);
+	AttributeSet = ECMPlayerState->GetAttributeSet();
 }
 
 

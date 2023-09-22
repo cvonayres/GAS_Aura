@@ -14,11 +14,18 @@ class AURA_API AECMCharacterPlayer : public AECMCharacterBase
 public:
 	AECMCharacterPlayer();
 
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
+	
 protected:
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY()
 	class AECMPlayerController* ControllerRef;
+
+	// Called from Player Controller
 	void UpdatedViewMode();
-	
+
+	void InitAbilityActorInfo();
 };

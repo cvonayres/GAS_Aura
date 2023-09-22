@@ -41,4 +41,9 @@ void AECMCharacterBase::UnHightlighActor()
 	Highlighted(false);
 }
 
+UAbilitySystemComponent* AECMCharacterBase::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
 
