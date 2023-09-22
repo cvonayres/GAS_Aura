@@ -4,7 +4,7 @@
 #include "ECMPlayerCameraManager.h"
 #include "EnhancedInputSubsystems.h"
 #include  "EnhancedInputComponent.h"
-#include "Aura/Interactions/ECMHightlightInterface.h"
+#include "Aura/Interaction/ECMHightlightInterface.h"
 
 AECMPlayerController::AECMPlayerController()
 {
@@ -24,9 +24,10 @@ void AECMPlayerController::BeginPlay()
 
 	// Add Input Mapping Context
 	check(InputContext);
-	UEnhancedInputLocalPlayerSubsystem*  Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
-	check(Subsystem);
-	Subsystem->AddMappingContext(InputContext,0);
+	if(UEnhancedInputLocalPlayerSubsystem*  Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		Subsystem->AddMappingContext(InputContext,0);
+	}
 
 	// Setup Input Mode 
 	FInputModeGameAndUI InputModeData;

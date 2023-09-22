@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "Aura/Player/ECMPlayerController.h"
 #include "Aura/Player/ECMPlayerState.h"
+#include "Aura/UI/HUD/ECMHUD.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AECMCharacterPlayer::AECMCharacterPlayer()
@@ -36,7 +37,7 @@ void AECMCharacterPlayer::OnRep_PlayerState()
 	ControllerRef = Cast<AECMPlayerController>(GetController());
 
 	// Init ability actor info for the client
-	InitAbilityActorInfo();	
+	InitAbilityActorInfo();
 }
 
 void AECMCharacterPlayer::BeginPlay()
@@ -74,6 +75,14 @@ void AECMCharacterPlayer::InitAbilityActorInfo()
 	AbilitySystemComponent =ECMPlayerState->GetAbilitySystemComponent();
 	AbilitySystemComponent->InitAbilityActorInfo(ECMPlayerState, this);
 	AttributeSet = ECMPlayerState->GetAttributeSet();
+	
+	if(AECMPlayerController* ECMPlayerController = Cast<AECMPlayerController>(GetController()))
+	{
+		if(AECMHUD* ECMHUD = Cast<AECMHUD>(ECMPlayerController->GetHUD()))
+		{
+			ECMHUD->InitOverlay(ECMPlayerController, ECMPlayerState, AbilitySystemComponent ,AttributeSet);
+		}
+	}
 }
 
 

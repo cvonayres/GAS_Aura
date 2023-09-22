@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
-#include "Aura/Interactions/ECMHightlightInterface.h"
+#include "Aura/Interaction/ECMHightlightInterface.h"
 #include "GameFramework/Character.h"
 #include "ECMCharacterBase.generated.h"
 

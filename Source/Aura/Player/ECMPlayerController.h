@@ -52,7 +52,6 @@ private:
 	void ZoomCamera(const FInputActionValue& InputActionValve);
 
 	void CurserTrace();
-	IECMHightlightInterface* LastActor;
-	IECMHightlightInterface* ThisActor;
-
+	TObjectPtr<IECMHightlightInterface> LastActor;
+	TObjectPtr<IECMHightlightInterface> ThisActor;
 };

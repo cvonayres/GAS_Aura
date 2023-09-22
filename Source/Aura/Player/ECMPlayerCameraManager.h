@@ -62,9 +62,9 @@ protected:
 private:
 	//Referances
 	UPROPERTY(VisibleAnywhere, Category="Referances")
-	AECMPlayerController* Controller;
+	TObjectPtr<AECMPlayerController> Controller;
 	UPROPERTY(VisibleAnywhere, Category="Referances")
-	APawn* ControlledPawn;
+	TObjectPtr<APawn>ControlledPawn;
 
 	//Private Variables
 	FVector VOffset;
