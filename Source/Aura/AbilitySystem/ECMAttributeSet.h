@@ -7,12 +7,83 @@
 #include "AbilitySystemComponent.h"
 #include "ECMAttributeSet.generated.h"
 
+#pragma region Macros
 // Macro for creating attribute getters, setters,etc
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
 	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
+#pragma endregion Macros
+
+#pragma region Enums
+// Enum for Vital Attributes
+UENUM(BlueprintType)
+enum class EVitalAttribute : uint8 {
+	Health       UMETA(DisplayName="Health"),
+	Stamina        UMETA(DisplayName="Stamina"),
+	Mana        UMETA(DisplayName="Mana"),
+	Armor       UMETA(DisplayName="Armor"),
+	Shield        UMETA(DisplayName="Shield"),
+};
+
+// Enum for Primary Attributes
+UENUM(BlueprintType)
+enum class EPrimaryAttribute : uint8 {
+	Str       UMETA(DisplayName="Strength"),
+	Dex        UMETA(DisplayName="Dexterity"),
+	Con        UMETA(DisplayName="Constitution "),
+	Int       UMETA(DisplayName="Intelligence"),
+	Wis        UMETA(DisplayName="Wisdom"),
+	Cha        UMETA(DisplayName="Charisma"),
+};
+
+// Enum for Secondary Attributes
+UENUM(BlueprintType)
+enum class ESecondaryAttribute : uint8 {
+	NoSecAtt       UMETA(DisplayName="No Secondary Attributes"),
+};
+
+// Enum for Tertiary Attributes
+UENUM(BlueprintType)
+enum class ETertiaryAttribute : uint8 {
+	NoTerAtt      UMETA(DisplayName="No Tertiary Attributes"),
+};
+#pragma endregion Enums
+
+#pragma region Struts
+USTRUCT()
+struct FEffectProperties
+{
+	GENERATED_BODY()
+
+	FEffectProperties(){}
+
+	//  Effect Context Handle
+	UPROPERTY()
+	FGameplayEffectContextHandle EffectContextHandle;
+	
+	// Source Info
+	UPROPERTY()
+	UAbilitySystemComponent* SourceASC = nullptr;
+	UPROPERTY()
+	AActor* SourceAvatarActor = nullptr;
+	UPROPERTY()
+	AController* SourceController = nullptr;
+	UPROPERTY()
+	ACharacter* SourceCharacter = nullptr;
+
+	// Target Avatar Info
+	UPROPERTY()
+	UAbilitySystemComponent* TargetASC = nullptr;
+	UPROPERTY()
+	AActor* TargetActor = nullptr;
+	UPROPERTY()
+	AController* TargetController = nullptr;
+	UPROPERTY()
+	ACharacter* TargetCharacter = nullptr;
+};
+#pragma endregion Struts
 
 UCLASS()
 class AURA_API UECMAttributeSet : public UAttributeSet
@@ -25,6 +96,10 @@ public:
 	// Replicate variables
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	
 // Vital - Gameplay Attributes
 #pragma region VitalAttributes
 	#pragma region Health
@@ -37,15 +112,15 @@ public:
 		ATTRIBUTE_ACCESSORS(UECMAttributeSet, MaxHealth);
 	#pragma endregion Health
 
-	#pragma region Sprint
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_Sprint)
-		FGameplayAttributeData Sprint;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Sprint);
+	#pragma region Stamina
+		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_Stamina)
+		FGameplayAttributeData Stamina;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Stamina);
 
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_MaxSprint)
-		FGameplayAttributeData MaxSprint;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, MaxSprint);
-	#pragma endregion Sprint
+		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_MaxStamina)
+		FGameplayAttributeData MaxStamina;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, MaxStamina);
+	#pragma endregion Stamina
 
 	#pragma region Mana
 		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_Mana)
@@ -84,9 +159,9 @@ public:
 		UFUNCTION()
 		void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth) const;
 		UFUNCTION()
-		void OnRep_Sprint(const FGameplayAttributeData& OldSprint) const;
+		void OnRep_Stamina(const FGameplayAttributeData& OldStamina) const;
 		UFUNCTION()
-		void OnRep_MaxSprint(const FGameplayAttributeData& OldMaxSprint) const;
+		void OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina) const;
 		UFUNCTION()
 		void OnRep_Mana(const FGameplayAttributeData& OldMana) const;
 		UFUNCTION()
@@ -157,7 +232,6 @@ public:
 	
 #pragma endregion TertiaryAttributes
 
-protected:
-
 private:
+	static void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties &Props);
 };

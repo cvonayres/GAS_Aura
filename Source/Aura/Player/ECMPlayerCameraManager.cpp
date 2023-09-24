@@ -12,7 +12,10 @@ AECMPlayerCameraManager::AECMPlayerCameraManager()
 void AECMPlayerCameraManager::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
+void AECMPlayerCameraManager::InitCamera()
+{
 	Controller = CastChecked<AECMPlayerController>(GetOwningPlayerController());
 
 	if(Controller) 
@@ -41,6 +44,8 @@ void AECMPlayerCameraManager::BeginPlay()
 // Called in BP on camera update
 FVector AECMPlayerCameraManager::GetUpdatedLocation() const
 {
+	if(!Controller) return VOffset;
+
 	if (Controller)
 	{
 		const FVector OffsetX = VOffset.X * GetCameraVector(EVectorDirection::Fwd);
@@ -58,6 +63,8 @@ FVector AECMPlayerCameraManager::GetUpdatedLocation() const
 }
 FRotator AECMPlayerCameraManager::GetUpdatedRotation() const
 {
+	if(!Controller) return ROffset;
+
 	if(Controller->ViewMode  == EViewMode::FPV)
 	{
 		return GetOwningPlayerController()->GetControlRotation();
@@ -81,7 +88,6 @@ void AECMPlayerCameraManager::UpdateZoom(const float valve)
 	const float CurveValve = -(ZoomCurve->GetFloatValue(valve));
 	const FVector Adjustment = GetCameraVector(EVectorDirection::Fwd) * CurveValve;
 	VOffset = ClampVector(VOffset + Adjustment,ZoomMIN,ZoomMAX);
-	Test = VOffset;
 }
 
 // Gets forward, right or Up vector from camera rotation

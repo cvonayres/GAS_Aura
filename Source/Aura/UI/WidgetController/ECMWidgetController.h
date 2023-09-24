@@ -8,6 +8,7 @@
 class UAttributeSet;
 class UAbilitySystemComponent;
 
+// Param strut
 USTRUCT(BlueprintType)
 struct FWidgetControllerParam
 {
@@ -34,12 +35,16 @@ class AURA_API UECMWidgetController : public UObject
 public:
 	UECMWidgetController();
 
-	// Set member variables
+	// Called from ECM Character Player
 	UFUNCTION(BlueprintCallable)
 	void SetWidgetControllerParam(const FWidgetControllerParam WCParams);
+
+	// Broadcasts initial valves, implement in child classes
+	virtual void BroadcastInitialValues();
+	virtual void BindCallbacksToDependencies();
 	
 protected:
-	// References to game model
+	// Widget controller pointer to key handlers
 	UPROPERTY(BlueprintReadOnly, Category="WidgetController")
 	TObjectPtr<APlayerController> PlayerController;
 	UPROPERTY(BlueprintReadOnly, Category="WidgetController")
@@ -48,8 +53,4 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	UPROPERTY(BlueprintReadOnly, Category="WidgetController")
 	TObjectPtr<UAttributeSet> AttributeSet;
-
-	
-private:
-	
 };

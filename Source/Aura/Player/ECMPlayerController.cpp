@@ -40,6 +40,7 @@ void AECMPlayerController::BeginPlay()
 	DefaultMouseCursor = EMouseCursor::Default;
 
 	CameraManager =  Cast<AECMPlayerCameraManager>(PlayerCameraManager);
+	CameraManager->InitCamera();
 }
 
 // Cast InputComponent and bind Input Actions

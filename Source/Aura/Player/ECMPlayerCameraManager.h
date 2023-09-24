@@ -26,6 +26,9 @@ public:
 
 	// Bound to Input in Player Controller
 	void UpdateZoom(float valve);
+
+	
+	void InitCamera();
 	
 protected:
 	virtual void BeginPlay() override;

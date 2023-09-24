@@ -13,3 +13,13 @@ void UECMWidgetController::SetWidgetControllerParam(const FWidgetControllerParam
 	AbilitySystemComponent = WCParams.AbilitySystemComponent;
 	AttributeSet = WCParams.AttributeSet;
 }
+
+void UECMWidgetController::BroadcastInitialValues()
+{
+	
+}
+
+void UECMWidgetController::BindCallbacksToDependencies()
+{
+	
+}

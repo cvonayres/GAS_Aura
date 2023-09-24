@@ -47,11 +47,11 @@ private:
 	TObjectPtr<UInputAction> MoveAction;
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> ZoomAction;
-
+	
 	void Move(const FInputActionValue& InputActionValve);
 	void ZoomCamera(const FInputActionValue& InputActionValve);
 
 	void CurserTrace();
-	TObjectPtr<IECMHightlightInterface> LastActor;
-	TObjectPtr<IECMHightlightInterface> ThisActor;
+	IECMHightlightInterface* LastActor;
+	IECMHightlightInterface* ThisActor;
 };
