@@ -10,7 +10,7 @@
 class UAbilitySystemComponent;
 class UGameplayEffect;
 
-// Enum for Vital Attributes
+// Enum for Vital Attributes TODO remove and replace with Gameplay Tags
 UENUM(BlueprintType)
 enum class EEffectType : uint8
 {
@@ -20,6 +20,7 @@ enum class EEffectType : uint8
 	Periodic      UMETA(DisplayName="Periodic"),	
 };
 
+#pragma region Policies
 UENUM(BlueprintType)
 enum class EEffectApplicationPolicy : uint8
 {
@@ -42,6 +43,7 @@ enum class EDestroyPolicy : uint8
 	ApplyOnEndOverlap,
 	DoNotApply
 };
+#pragma endregion Policies
 
 UCLASS()
 class AURA_API AECMEffectActor : public AActor
@@ -57,7 +59,6 @@ public:
 protected:
 	UFUNCTION(BlueprintCallable)
 	void OnOverlap(AActor* TargetActor);
-
 	UFUNCTION(BlueprintCallable)
 	void OnEndOverlap(AActor* TargetActor);
 	
@@ -65,31 +66,34 @@ protected:
 	bool bDestroyOnEffectRemoval = false;
 
 #pragma region GameplayEffects
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Instance")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Instance")
 	TSubclassOf<UGameplayEffect> InstantGameplayEffectClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Instance")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Instance")
 	EEffectApplicationPolicy InstanceEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Duration")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Duration")
 	TSubclassOf<UGameplayEffect> DurationGameplayEffectClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Duration")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Duration")
 	EEffectApplicationPolicy DurationEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Infinite")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Infinite")
 	TSubclassOf<UGameplayEffect> InfiniteGameplayEffectClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Infinite")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Infinite")
 	EEffectApplicationPolicy InfiniteEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Infinite")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Infinite")
 	EEffectRemovalPolicy InfiniteEffectRemovalPolicy = EEffectRemovalPolicy::RemoveOnEndOverlap;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Periodic")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Periodic")
 	TSubclassOf<UGameplayEffect> PeriodicGameplayEffectClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Periodic")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Periodic")
 	EEffectApplicationPolicy PeriodicEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Applied Effects")
 	EDestroyPolicy DestroyPolicy = EDestroyPolicy::DoNotApply;
 #pragma endregion GameplayEffects
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Applied Effects")
+	float ActorLevel = 1.f;
 
 private:
 	void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass);

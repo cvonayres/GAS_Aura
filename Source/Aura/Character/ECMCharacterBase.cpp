@@ -23,6 +23,10 @@ void AECMCharacterBase::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AECMCharacterBase::InitAbilityActorInfo()
+{
+}
+
 void AECMCharacterBase::HighlightActor()
 {
 	GetMesh()->SetRenderCustomDepth(true);
@@ -45,5 +49,3 @@ UAbilitySystemComponent* AECMCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
-
-

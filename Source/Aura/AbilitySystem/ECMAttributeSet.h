@@ -7,6 +7,7 @@
 #include "AbilitySystemComponent.h"
 #include "ECMAttributeSet.generated.h"
 
+
 #pragma region Macros
 // Macro for creating attribute getters, setters,etc
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \

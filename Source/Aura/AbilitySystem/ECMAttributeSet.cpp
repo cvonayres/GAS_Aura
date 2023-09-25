@@ -43,7 +43,6 @@ void UECMAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, f
 	if(Attribute == GetArmorAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxArmor());
-
 	}
 	if(Attribute == GetShieldAttribute())
 	{
@@ -58,6 +57,27 @@ void UECMAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 	FEffectProperties Props;
 	SetEffectProperties(Data, Props);
+
+	if(Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+	}
+	if(Data.EvaluatedData.Attribute == GetStaminaAttribute())
+	{
+		SetStamina(FMath::Clamp(GetStamina(), 0.f, GetMaxStamina()));
+	}
+	if(Data.EvaluatedData.Attribute == GetManaAttribute())
+	{
+		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
+	}
+	if(Data.EvaluatedData.Attribute == GetArmorAttribute())
+	{
+		SetArmor(FMath::Clamp(GetArmor(), 0.f, GetMaxArmor()));
+	}
+	if(Data.EvaluatedData.Attribute == GetShieldAttribute())
+	{
+		SetShield(FMath::Clamp(GetShield(), 0.f, GetMaxShield()));
+	}
 }
 void UECMAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props)
 {

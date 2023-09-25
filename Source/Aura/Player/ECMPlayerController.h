@@ -35,7 +35,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
-	
 private:
 	UPROPERTY(VisibleAnywhere, Category="Referances")
 	class AECMPlayerCameraManager* CameraManager;

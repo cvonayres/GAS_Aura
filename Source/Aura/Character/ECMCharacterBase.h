@@ -39,9 +39,12 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
-	
+
+	// Optional BP function called on highlighed
 	UFUNCTION(BlueprintImplementableEvent)
 	void Highlighted(bool State);
+
+	virtual void InitAbilityActorInfo();
 
 private:
 	

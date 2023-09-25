@@ -20,6 +20,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void InitAbilityActorInfo() override;
+
 private:
 	UPROPERTY()
 	class AECMPlayerController* ControllerRef;
@@ -27,5 +29,4 @@ private:
 	// Called from Player Controller
 	void UpdatedViewMode();
 
-	void InitAbilityActorInfo();
 };

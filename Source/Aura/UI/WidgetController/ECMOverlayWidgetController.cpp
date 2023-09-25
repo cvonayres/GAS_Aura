@@ -2,6 +2,7 @@
 
 
 #include "ECMOverlayWidgetController.h"
+#include "Aura/AbilitySystem/ECMAbilitySystemComponent.h"
 #include "Aura/AbilitySystem/ECMAttributeSet.h"
 
 // Broadcast when Attribute change
@@ -29,74 +30,92 @@ void UECMOverlayWidgetController::BroadcastInitialValues()
 void UECMOverlayWidgetController::BindCallbacksToDependencies()
 {
 	const UECMAttributeSet* ECMAttributeSet = CastChecked<UECMAttributeSet>(AttributeSet);
-
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		ECMAttributeSet->GetHealthAttribute()).AddUObject(this, &UECMOverlayWidgetController::HealthChanged);
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		ECMAttributeSet->GetMaxHealthAttribute()).AddUObject(this, &UECMOverlayWidgetController::MaxHealthChanged);
 	
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		ECMAttributeSet->GetStaminaAttribute()).AddUObject(this, &UECMOverlayWidgetController::StaminaChanged);
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		ECMAttributeSet->GetMaxStaminaAttribute()).AddUObject(this, &UECMOverlayWidgetController::MaxStaminaChanged);
+	// Bind Health & Max Health
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(ECMAttributeSet->GetHealthAttribute()).AddLambda(
+		[this](const FOnAttributeChangeData &Data)
+			{
+				OnHealthChanged.Broadcast(Data.NewValue);
+			}
+		);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(ECMAttributeSet->GetMaxHealthAttribute()).AddLambda(
+		[this](const FOnAttributeChangeData &Data)
+			{
+				OnMaxHealthChanged.Broadcast(Data.NewValue);
+			}
+		);
 
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		ECMAttributeSet->GetManaAttribute()).AddUObject(this, &UECMOverlayWidgetController::ManaChanged);
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		ECMAttributeSet->GetMaxManaAttribute()).AddUObject(this, &UECMOverlayWidgetController::MaxManaChanged);
+	// Bind Stamina & Max Stamina
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(ECMAttributeSet->GetStaminaAttribute()).AddLambda(
+	[this](const FOnAttributeChangeData &Data)
+		{
+			OnStaminaChanged.Broadcast(Data.NewValue);
+		}
+		);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(ECMAttributeSet->GetMaxStaminaAttribute()).AddLambda(
+		[this](const FOnAttributeChangeData &Data)
+			{
+				OnMaxStaminaChanged.Broadcast(Data.NewValue);
+			}
+		);
 
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		ECMAttributeSet->GetArmorAttribute()).AddUObject(this, &UECMOverlayWidgetController::ArmorChanged);
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		ECMAttributeSet->GetMaxArmorAttribute()).AddUObject(this, &UECMOverlayWidgetController::MaxArmorChanged);
+	// Bind Mana & Max Mana
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(ECMAttributeSet->GetManaAttribute()).AddLambda(
+	[this](const FOnAttributeChangeData &Data)
+		{
+			OnManaChanged.Broadcast(Data.NewValue);
+		}
+		);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(ECMAttributeSet->GetMaxManaAttribute()).AddLambda(
+		[this](const FOnAttributeChangeData &Data)
+			{
+				OnMaxManaChanged.Broadcast(Data.NewValue);
+			}
+		);
 
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		ECMAttributeSet->GetShieldAttribute()).AddUObject(this, &UECMOverlayWidgetController::ShieldChanged);
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		ECMAttributeSet->GetMaxShieldAttribute()).AddUObject(this, &UECMOverlayWidgetController::MaxShieldChanged);
-}
+	// Bind Armor & Max Armor
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(ECMAttributeSet->GetArmorAttribute()).AddLambda(
+[this](const FOnAttributeChangeData &Data)
+	{
+		OnArmorChanged.Broadcast(Data.NewValue);
+	}
+		);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(ECMAttributeSet->GetMaxArmorAttribute()).AddLambda(
+		[this](const FOnAttributeChangeData &Data)
+			{
+				OnMaxArmorChanged.Broadcast(Data.NewValue);
+			}
+		);
 
-void UECMOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const
-{
-	OnHealthChanged.Broadcast(Data.NewValue);
-}
-void UECMOverlayWidgetController::MaxHealthChanged(const FOnAttributeChangeData& Data) const
-{
-	OnMaxHealthChanged.Broadcast(Data.NewValue);
-}
+	// Bind Shield & Max Shield
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(ECMAttributeSet->GetShieldAttribute()).AddLambda(
+[this](const FOnAttributeChangeData &Data)
+	{
+		OnShieldChanged.Broadcast(Data.NewValue);
+	}
+		);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(ECMAttributeSet->GetMaxShieldAttribute()).AddLambda(
+		[this](const FOnAttributeChangeData &Data)
+			{
+				OnMaxShieldChanged.Broadcast(Data.NewValue);
+			}
+		);
 
-void UECMOverlayWidgetController::StaminaChanged(const FOnAttributeChangeData& Data) const
-{
-	OnStaminaChanged.Broadcast(Data.NewValue);
-}
-void UECMOverlayWidgetController::MaxStaminaChanged(const FOnAttributeChangeData& Data) const
-{
-	OnMaxStaminaChanged.Broadcast(Data.NewValue);
-}
+	// Bind Message Widget Row
+	Cast<UECMAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTags.AddLambda(
+	[this](const FGameplayTagContainer& AssetTags)
+		{
+			for(const FGameplayTag& Tag : AssetTags)
+			{
+				// Only look for row from data table if tag has message
+				FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag(FName("Message"));
+				if(Tag.MatchesTag(MessageTag))
+				{
+					const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);
+					MessageWidgetRowDelegate.Broadcast(*Row);
+				}
+			}
+		}
+		);
 
-void UECMOverlayWidgetController::ManaChanged(const FOnAttributeChangeData& Data) const
-{
-	OnManaChanged.Broadcast(Data.NewValue);
-}
-void UECMOverlayWidgetController::MaxManaChanged(const FOnAttributeChangeData& Data) const
-{
-	OnMaxManaChanged.Broadcast(Data.NewValue);
-}
-
-void UECMOverlayWidgetController::ArmorChanged(const FOnAttributeChangeData& Data) const
-{
-	OnArmorChanged.Broadcast(Data.NewValue);
-}
-void UECMOverlayWidgetController::MaxArmorChanged(const FOnAttributeChangeData& Data) const
-{
-	OnMaxArmorChanged.Broadcast(Data.NewValue);
-}
-
-void UECMOverlayWidgetController::ShieldChanged(const FOnAttributeChangeData& Data) const
-{
-	OnShieldChanged.Broadcast(Data.NewValue);
-}
-void UECMOverlayWidgetController::MaxShieldChanged(const FOnAttributeChangeData& Data) const
-{
-	OnMaxShieldChanged.Broadcast(Data.NewValue);
 }

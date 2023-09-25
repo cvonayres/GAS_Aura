@@ -4,19 +4,33 @@
 
 #include "CoreMinimal.h"
 #include "ECMWidgetController.h"
+#include "GameplayTagContainer.h"
 #include "ECMOverlayWidgetController.generated.h"
 
+class UECMUserWidget;
+
+USTRUCT(BlueprintType)
+struct FUIWidgetRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FGameplayTag MessageTag = FGameplayTag();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FText Message = FText();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<UECMUserWidget> MessageWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UTexture2D* Image = nullptr;
+};
+
 struct FOnAttributeChangeData;
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChangedSignature, float, NewxxxHealth);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxHealthChangedSignature, float, NewMaxHealth);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStaminaChangedSignature, float, NewStamina);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxStaminaChangedSignature, float, NewMaxStamina);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnManaChangedSignature, float, NewMana);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxManaChangedSignature, float, NewMaxMana);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnArmorChangedSignature, float, NewArmor);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxArmorChangedSignature, float, NewMaxArmor);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShieldChangedSignature, float, NewShield);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxShieldChangedSignature, float, NewMaxShield);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature, float, NewValve);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidgetRow, Row);
 
 UCLASS(BlueprintType, Blueprintable)
 class AURA_API UECMOverlayWidgetController : public UECMWidgetController
@@ -26,45 +40,47 @@ class AURA_API UECMOverlayWidgetController : public UECMWidgetController
 public:
 	virtual void BroadcastInitialValues() override;
 	virtual void BindCallbacksToDependencies() override;
+
+	// Bindings
+	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
+	FOnAttributeChangedSignature OnHealthChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
+	FOnAttributeChangedSignature OnMaxHealthChanged;
 	
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnHealthChangedSignature OnHealthChanged;
+	FOnAttributeChangedSignature OnStaminaChanged;
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnMaxHealthChangedSignature OnMaxHealthChanged;
+	FOnAttributeChangedSignature OnMaxStaminaChanged;
 	
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnStaminaChangedSignature OnStaminaChanged;
+	FOnAttributeChangedSignature OnManaChanged;
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnMaxStaminaChangedSignature OnMaxStaminaChanged;
+	FOnAttributeChangedSignature OnMaxManaChanged;
 	
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnManaChangedSignature OnManaChanged;
+	FOnAttributeChangedSignature OnArmorChanged;
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnMaxManaChangedSignature OnMaxManaChanged;
-	
-	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnArmorChangedSignature OnArmorChanged;
-	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnMaxArmorChangedSignature OnMaxArmorChanged;
+	FOnAttributeChangedSignature OnMaxArmorChanged;
 
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnShieldChangedSignature OnShieldChanged;
+	FOnAttributeChangedSignature OnShieldChanged;
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnMaxShieldChangedSignature OnMaxShieldChanged;
+	FOnAttributeChangedSignature OnMaxShieldChanged;
+
+	UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
+	FMessageWidgetRowSignature MessageWidgetRowDelegate;
 
 protected:
-	void HealthChanged(const FOnAttributeChangeData &Data) const;
-	void MaxHealthChanged(const FOnAttributeChangeData &Data) const;
-
-	void StaminaChanged(const FOnAttributeChangeData &Data) const;
-	void MaxStaminaChanged(const FOnAttributeChangeData &Data) const;
-
-	void ManaChanged(const FOnAttributeChangeData &Data) const;
-	void MaxManaChanged(const FOnAttributeChangeData &Data) const;
-
-	void ArmorChanged(const FOnAttributeChangeData &Data) const;
-	void MaxArmorChanged(const FOnAttributeChangeData &Data) const;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="WidgetData")
+	TObjectPtr<UDataTable> MessageWidgetDataTable;
 	
-	void ShieldChanged(const FOnAttributeChangeData &Data) const;
-	void MaxShieldChanged(const FOnAttributeChangeData &Data) const;
+	template<typename T>
+	static T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);
+	
 };
+
+template <typename T>
+T* UECMOverlayWidgetController::GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag)
+{
+	return DataTable->FindRow<T>(Tag.GetTagName(), TEXT(""));
+}
