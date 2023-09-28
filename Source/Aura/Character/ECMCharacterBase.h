@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "ECMCharacterBase.generated.h"
 
+class UGameplayEffect;
 class UAttributeSet;
 class UAbilitySystemComponent;
 
@@ -45,7 +46,16 @@ protected:
 	void Highlighted(bool State);
 
 	virtual void InitAbilityActorInfo();
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Attributes")
+	TSubclassOf<UGameplayEffect> DefaultPrimaryAttributes;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Attributes")
+	TSubclassOf<UGameplayEffect> DefaultSecondaryAttributes;
+	
+	void InitDefaultAttributes() const;
+	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect>  GameplayEffectClass, float Level) const;
 
 private:
 	
 };
+

@@ -32,6 +32,11 @@ struct FOnAttributeChangeData;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature, float, NewValve);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidgetRow, Row);
 
+#define DECLARE_ATTRIBUTE_BINDING(CATEGORY, ATTRIBUTE) \
+	UPROPERTY(BlueprintAssignable, Category = CATEGORY) \
+	FOnAttributeChangedSignature On##ATTRIBUTE##Changed;
+
+
 UCLASS(BlueprintType, Blueprintable)
 class AURA_API UECMOverlayWidgetController : public UECMWidgetController
 {
@@ -43,30 +48,63 @@ public:
 
 	// Bindings
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnAttributeChangedSignature OnHealthChanged;
+	FOnAttributeChangedSignature OnVitalityMatrixChanged;
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnAttributeChangedSignature OnMaxHealthChanged;
-	
+	FOnAttributeChangedSignature OnEnergeticEnduranceChanged;
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnAttributeChangedSignature OnStaminaChanged;
+	FOnAttributeChangedSignature OnArcaneReservoirChanged;
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnAttributeChangedSignature OnMaxStaminaChanged;
-	
+	FOnAttributeChangedSignature OnDefensiveSynchronyChanged;
 	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnAttributeChangedSignature OnManaChanged;
-	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnAttributeChangedSignature OnMaxManaChanged;
-	
-	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnAttributeChangedSignature OnArmorChanged;
-	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnAttributeChangedSignature OnMaxArmorChanged;
+	FOnAttributeChangedSignature OnBarrierMatrixChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnAttributeChangedSignature OnShieldChanged;
-	UPROPERTY(BlueprintAssignable, Category="GAS|Vital Attributes")
-	FOnAttributeChangedSignature OnMaxShieldChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Primary Attributes")
+	FOnAttributeChangedSignature OnPhysiqueChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Primary Attributes")
+	FOnAttributeChangedSignature OnAdaptivityChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Primary Attributes")
+	FOnAttributeChangedSignature OnNeuralAgilityChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Primary Attributes")
+	FOnAttributeChangedSignature OnEmpathicResonanceChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Primary Attributes")
+	FOnAttributeChangedSignature OnEssenceControlChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Primary Attributes")
+	FOnAttributeChangedSignature OnNanomancyChanged;
 
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnVMCapacityChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnVMRecoveryChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnEECapacityChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnEERecoveryChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnARCapacityChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnARRecoveryChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnKineticAbsorptionChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnNanoshieldThresholdChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnResonanceSyncQualityChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnResonanceAmplificationChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnEmpathicInfluenceChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnTechnologicalInterfaceChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnSignalStealthChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnReactionSpeedChanged;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Secondary Attributes")
+	FOnAttributeChangedSignature OnDimensionalPocketCapacityChanged;
+
+	UPROPERTY(BlueprintAssignable, Category="GAS|TertiaryAttributes")
+	FOnAttributeChangedSignature OnLevelChanged;
+	
 	UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
 	FMessageWidgetRowSignature MessageWidgetRowDelegate;
 

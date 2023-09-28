@@ -7,19 +7,38 @@
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 
-UECMAttributeSet::UECMAttributeSet()
+struct AttributeFunctionMappings
 {
-	// Vital Attributes TODO Review where to set these
-	InitHealth(50.f);
-	InitMaxHealth(100.f);
-	InitStamina(50.f);
-	InitMaxStamina(100.f);
-	InitMana(50.f);
-	InitMaxMana(100.f);
-	InitArmor(50.f);
-	InitMaxArmor(100.f);
-	InitShield(50.f);
-	InitMaxShield(100.f);
+	FGameplayAttribute Attribute;
+	float (UECMAttributeSet::*Getter)() const = nullptr;
+	void (UECMAttributeSet::*Setter)(float) = nullptr;
+	float (UECMAttributeSet::*MaxFunc)() const;
+};
+
+#pragma region Clamping
+// Define Vital Attributes for Clamping
+TArray<AttributeFunctionMappings> UECMAttributeSet::GetVitalValvesMappings()
+{
+	return {
+		        { GetVitalityMatrixAttribute(), &UECMAttributeSet::GetVitalityMatrix, &UECMAttributeSet::SetVitalityMatrix, &UECMAttributeSet::GetVMCapacity },
+				{ GetEnergeticEnduranceAttribute(), &UECMAttributeSet::GetEnergeticEndurance, &UECMAttributeSet::SetEnergeticEndurance, &UECMAttributeSet::GetEECapacity },
+				{ GetArcaneReservoirAttribute(), &UECMAttributeSet::GetArcaneReservoir, &UECMAttributeSet::SetArcaneReservoir, &UECMAttributeSet::GetARCapacity },
+				{ GetDefensiveSynchronyAttribute(), &UECMAttributeSet::GetDefensiveSynchrony, &UECMAttributeSet::SetDefensiveSynchrony, &UECMAttributeSet::GetKineticAbsorption },
+				{ GetBarrierMatrixAttribute(), &UECMAttributeSet::GetBarrierMatrix, &UECMAttributeSet::SetBarrierMatrix, &UECMAttributeSet::GetNanoshieldThreshold }
+	};
+}
+
+// Define Primary Attributes for Clamping
+TArray<AttributeFunctionMappings> UECMAttributeSet::GetPrimaryValvesMappings()
+{
+	return {
+		        { GetPhysiqueAttribute(), &UECMAttributeSet::GetPhysique, &UECMAttributeSet::SetPhysique },
+				{ GetAdaptivityAttribute(), &UECMAttributeSet::GetAdaptivity, &UECMAttributeSet::SetAdaptivity },
+				{ GetNeuralAgilityAttribute(), &UECMAttributeSet::GetNeuralAgility, &UECMAttributeSet::SetNeuralAgility },
+				{ GetEmpathicResonanceAttribute(), &UECMAttributeSet::GetEmpathicResonance, &UECMAttributeSet::SetEmpathicResonance },
+				{ GetEssenceControlAttribute(), &UECMAttributeSet::GetEssenceControl, &UECMAttributeSet::SetEssenceControl },
+				{ GetNanomancyAttribute(), &UECMAttributeSet::GetNanomancy, &UECMAttributeSet::SetNanomancy },
+			};
 }
 
 // Clamp Valves
@@ -27,56 +46,64 @@ void UECMAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, f
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
-	// Clamp Valves
-	if(Attribute == GetHealthAttribute())
+	// Gets Vital Attribute Mapping and clamps valve
+	const TArray<AttributeFunctionMappings> VitalValves = GetVitalValvesMappings();
+	for (const auto& Mapping : VitalValves)
 	{
-		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
+		if (Attribute == Mapping.Attribute)
+		{
+			NewValue = FMath::Clamp(NewValue, 0.f, (this->*Mapping.MaxFunc)());
+			return;
+		}
 	}
-	if(Attribute == GetStaminaAttribute())
+
+	// Gets Primary Attribute Mapping and clamps valve
+	const TArray<AttributeFunctionMappings> PrimaryValves = GetPrimaryValvesMappings();
+	for (const auto& Mapping : PrimaryValves)
 	{
-		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxStamina());
-	}
-	if(Attribute == GetManaAttribute())
-	{
-		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
-	}
-	if(Attribute == GetArmorAttribute())
-	{
-		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxArmor());
-	}
-	if(Attribute == GetShieldAttribute())
-	{
-		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxShield());
+		if (Attribute == Mapping.Attribute)
+		{
+			NewValue = FMath::Clamp(NewValue, 0.f, MaxPrimaryAttribute);
+			return;
+		}
 	}
 }
 
-// Harvest Data
+// Harvest Data & Clamp again
 void UECMAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
 
+	// Gets GameplayEffect Prop from Data packet
 	FEffectProperties Props;
 	SetEffectProperties(Data, Props);
 
-	if(Data.EvaluatedData.Attribute == GetHealthAttribute())
+	// Gets Attribute from the Data packet
+	const FGameplayAttribute Attribute = Data.EvaluatedData.Attribute;
+
+	// Gets Vital Attribute Mapping and clamps valve
+	const TArray<AttributeFunctionMappings> VitalValves = GetVitalValvesMappings();
+	for (const auto& Mapping : VitalValves)
 	{
-		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+		if (Attribute == Mapping.Attribute)
+		{
+			float currentValue = (this->*Mapping.Getter)();
+			float maxVal = (this->*Mapping.MaxFunc)();
+			(this->*Mapping.Setter)(FMath::Clamp(currentValue, 0.f, maxVal));
+			return;
+		}
 	}
-	if(Data.EvaluatedData.Attribute == GetStaminaAttribute())
+
+	// Gets Primary Attribute Mapping and clamps valve
+	const TArray<AttributeFunctionMappings> PrimaryValves = GetPrimaryValvesMappings();
+	for (const auto& Mapping : PrimaryValves)
 	{
-		SetStamina(FMath::Clamp(GetStamina(), 0.f, GetMaxStamina()));
-	}
-	if(Data.EvaluatedData.Attribute == GetManaAttribute())
-	{
-		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
-	}
-	if(Data.EvaluatedData.Attribute == GetArmorAttribute())
-	{
-		SetArmor(FMath::Clamp(GetArmor(), 0.f, GetMaxArmor()));
-	}
-	if(Data.EvaluatedData.Attribute == GetShieldAttribute())
-	{
-		SetShield(FMath::Clamp(GetShield(), 0.f, GetMaxShield()));
+		if (Attribute == Mapping.Attribute)
+		{
+			float currentValue = (this->*Mapping.Getter)();
+			(this->*Mapping.Setter)(FMath::Clamp(currentValue, 0.f, MaxPrimaryAttribute));
+			return;
+		}
 	}
 }
 void UECMAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props)
@@ -127,118 +154,92 @@ void UECMAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	// Vital Attributes to be replicated
 	#pragma region RepVitalAttributes
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Health, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Stamina, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, MaxStamina, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Mana, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Armor, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, MaxArmor, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Shield, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, MaxShield, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, VitalityMatrix, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, EnergeticEndurance, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, ArcaneReservoir, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, DefensiveSynchrony, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, BarrierMatrix, COND_None, REPNOTIFY_Always);
 	#pragma endregion RepVitalAttributes
 	
 	// Primary Attributes to be replicated
 	#pragma region RepPrimaryAttributes
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Str, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Dex, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Con, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Int, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Wis, COND_None, REPNOTIFY_Always);
-		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Cha, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Physique, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Adaptivity, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, NeuralAgility, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, EmpathicResonance, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, EssenceControl, COND_None, REPNOTIFY_Always);
 	#pragma endregion RepPrimaryAttributes
 
 	// Secondary Attributes to be replicated
 	#pragma region RepSecondaryAttributes
-		// Place holder for Secondary Attributes for replication to be placed
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, VMCapacity, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, VMRecovery, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, EECapacity, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, EERecovery, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, ARCapacity, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, ARRecovery, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, KineticAbsorption, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, NanoshieldThreshold, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, ResonanceSyncQuality, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, ResonanceAmplification, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, EmpathicInfluence, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, TechnologicalInterface, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, SignalStealth, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, ReactionSpeed, COND_None, REPNOTIFY_Always);
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, DimensionalPocketCapacity, COND_None, REPNOTIFY_Always);
 	#pragma endregion RepSecondaryAttributes
 	
 	// Tertiary Attributes to be replicated
 	#pragma region RepTertiaryAttributes
-		// Place holder for Tertiary Attributes for replication to be placed
+		DOREPLIFETIME_CONDITION_NOTIFY(UECMAttributeSet, Level, COND_None, REPNOTIFY_Always);
 	#pragma endregion RepTertiaryAttributes
+}
+#pragma endregion Clamping
+
+#pragma region RefNofifies
+// Macro for creating  repetitive Repfunctions
+#define DEFINE_ATTRIBUTE_REPNOTIFY(ClassName, AttributeName) \
+void ClassName::OnRep_##AttributeName(const FGameplayAttributeData& Old##AttributeName) const \
+{ \
+GAMEPLAYATTRIBUTE_REPNOTIFY(ClassName, AttributeName, Old##AttributeName); \
 }
 
 // Vital - Gameplay Attributes
-#pragma region VitalAttributes
-	void UECMAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Health, OldHealth);
-}
-	void UECMAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, MaxHealth, OldMaxHealth);
-}
-	void UECMAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldStamina) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Stamina, OldStamina);
-}
-	void UECMAttributeSet::OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, MaxStamina, OldMaxStamina);
-}
-	void UECMAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldMana) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Mana, OldMana);
-}
-	void UECMAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, MaxMana, OldMaxMana);
-}	
-	void UECMAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldArmor) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Armor, OldArmor);
-}
-	void UECMAttributeSet::OnRep_MaxArmor(const FGameplayAttributeData& OldMaxArmor) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, MaxArmor, OldMaxArmor);
-}
-	void UECMAttributeSet::OnRep_Shield(const FGameplayAttributeData& OldShield) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Shield, OldShield);
-}
-	void UECMAttributeSet::OnRep_MaxShield(const FGameplayAttributeData& OldMaxShield) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, MaxShield, OldMaxShield);
-}
-#pragma endregion VitalAttributes
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, VitalityMatrix)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, EnergeticEndurance)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, ArcaneReservoir)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, DefensiveSynchrony)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, BarrierMatrix)
 
 // Primary - Gameplay Attributes
-#pragma region PrimaryAttributes
-	void UECMAttributeSet::OnRep_Str(const FGameplayAttributeData& OldStr) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Str, OldStr);
-}
-	void UECMAttributeSet::OnRep_Dex(const FGameplayAttributeData& OldDex) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Dex, OldDex);
-}
-	void UECMAttributeSet::OnRep_Con(const FGameplayAttributeData& OldCon) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Con, OldCon);
-}
-	void UECMAttributeSet::OnRep_Int(const FGameplayAttributeData& OldInt) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Int, OldInt);
-}
-	void UECMAttributeSet::OnRep_Wis(const FGameplayAttributeData& OldWis) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Wis, OldWis);
-}
-	void UECMAttributeSet::OnRep_Cha(const FGameplayAttributeData& OldCha) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UECMAttributeSet, Cha, OldCha);
-}
-#pragma endregion PrimaryAttributes
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, Physique)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, Adaptivity)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, NeuralAgility)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, EmpathicResonance)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, EssenceControl)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, Nanomancy)
 
 // Secondary - Gameplay Attributes
-#pragma region SecondaryAttributes
-	// Place holder for Secondary Attributes to be placed
-#pragma endregion SecondaryAttributes
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, VMCapacity)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, VMRecovery)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, EECapacity)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, EERecovery)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, ARCapacity)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, ARRecovery)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, KineticAbsorption)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, NanoshieldThreshold)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, ResonanceSyncQuality)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, ResonanceAmplification)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, EmpathicInfluence)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, TechnologicalInterface)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, SignalStealth)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, ReactionSpeed)
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, DimensionalPocketCapacity)
 
 // Tertiary - Gameplay Attributes
-#pragma region TertiaryAttributes
-	// Place holder for Tertiary Attributes to be placed
-#pragma endregion TertiaryAttributes
+DEFINE_ATTRIBUTE_REPNOTIFY(UECMAttributeSet, Level)
 
+// Undefine the macro to prevent possible interference with other code
+#undef DEFINE_ATTRIBUTE_REPNOTIFY
+
+#pragma endregion RefNofifies

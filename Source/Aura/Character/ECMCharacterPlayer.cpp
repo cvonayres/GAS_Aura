@@ -85,6 +85,9 @@ void AECMCharacterPlayer::InitAbilityActorInfo()
 	// Get Attribute Set
 	AttributeSet = ECMPlayerState->GetAttributeSet();
 
+	// Initialise Primary Attributes
+	InitDefaultAttributes();
+	
 	// Gets Player controller and cast ability system and attribute set to Overlap
 	if(AECMPlayerController* ECMPlayerController = Cast<AECMPlayerController>(GetController()))
 	{
@@ -93,6 +96,7 @@ void AECMCharacterPlayer::InitAbilityActorInfo()
 			ECMHUD->InitOverlay(ECMPlayerController, ECMPlayerState, AbilitySystemComponent ,AttributeSet);
 		}
 	}
+	
 }
 
 

@@ -66,26 +66,26 @@ protected:
 	bool bDestroyOnEffectRemoval = false;
 
 #pragma region GameplayEffects
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Instance")
 	TSubclassOf<UGameplayEffect> InstantGameplayEffectClass;
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Instance")
 	EEffectApplicationPolicy InstanceEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
 	
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Duration")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Duration")
 	TSubclassOf<UGameplayEffect> DurationGameplayEffectClass;
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Duration")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Duration")
 	EEffectApplicationPolicy DurationEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
 	
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Infinite")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Infinite")
 	TSubclassOf<UGameplayEffect> InfiniteGameplayEffectClass;
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Infinite")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Infinite")
 	EEffectApplicationPolicy InfiniteEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Infinite")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Infinite")
 	EEffectRemovalPolicy InfiniteEffectRemovalPolicy = EEffectRemovalPolicy::RemoveOnEndOverlap;
 	
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Periodic")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Periodic")
 	TSubclassOf<UGameplayEffect> PeriodicGameplayEffectClass;
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category="Applied Effects|Periodic")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Applied Effects|Periodic")
 	EEffectApplicationPolicy PeriodicEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Applied Effects")
@@ -96,9 +96,10 @@ protected:
 	float ActorLevel = 1.f;
 
 private:
-	void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass);
 	void ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> GameplayEffectClass);
+	void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass);
+
 	void ErrorMessage() const;
-	
+
 	TMap<FActiveGameplayEffectHandle, UAbilitySystemComponent*> ActiveEffectHandles;
 };

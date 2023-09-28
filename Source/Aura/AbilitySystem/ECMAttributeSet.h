@@ -7,7 +7,6 @@
 #include "AbilitySystemComponent.h"
 #include "ECMAttributeSet.generated.h"
 
-
 #pragma region Macros
 // Macro for creating attribute getters, setters,etc
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
@@ -17,42 +16,8 @@
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 #pragma endregion Macros
 
-#pragma region Enums
-// Enum for Vital Attributes
-UENUM(BlueprintType)
-enum class EVitalAttribute : uint8 {
-	Health       UMETA(DisplayName="Health"),
-	Stamina        UMETA(DisplayName="Stamina"),
-	Mana        UMETA(DisplayName="Mana"),
-	Armor       UMETA(DisplayName="Armor"),
-	Shield        UMETA(DisplayName="Shield"),
-};
+struct AttributeFunctionMappings;
 
-// Enum for Primary Attributes
-UENUM(BlueprintType)
-enum class EPrimaryAttribute : uint8 {
-	Str       UMETA(DisplayName="Strength"),
-	Dex        UMETA(DisplayName="Dexterity"),
-	Con        UMETA(DisplayName="Constitution "),
-	Int       UMETA(DisplayName="Intelligence"),
-	Wis        UMETA(DisplayName="Wisdom"),
-	Cha        UMETA(DisplayName="Charisma"),
-};
-
-// Enum for Secondary Attributes
-UENUM(BlueprintType)
-enum class ESecondaryAttribute : uint8 {
-	NoSecAtt       UMETA(DisplayName="No Secondary Attributes"),
-};
-
-// Enum for Tertiary Attributes
-UENUM(BlueprintType)
-enum class ETertiaryAttribute : uint8 {
-	NoTerAtt      UMETA(DisplayName="No Tertiary Attributes"),
-};
-#pragma endregion Enums
-
-#pragma region Struts
 USTRUCT()
 struct FEffectProperties
 {
@@ -84,7 +49,6 @@ struct FEffectProperties
 	UPROPERTY()
 	ACharacter* TargetCharacter = nullptr;
 };
-#pragma endregion Struts
 
 UCLASS()
 class AURA_API UECMAttributeSet : public UAttributeSet
@@ -92,147 +56,209 @@ class AURA_API UECMAttributeSet : public UAttributeSet
 	GENERATED_BODY()
 
 public:
-	UECMAttributeSet();
-
 	// Replicate variables
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	// Used to Clamp Attributes before change
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
+	// Used to Clamp Attributes after change and harvest data of change
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-	
+
+// Vital - Gameplay Attributes
+
 // Vital - Gameplay Attributes
 #pragma region VitalAttributes
-	#pragma region Health
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_Health)
-		FGameplayAttributeData Health;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Health);
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Vital", ReplicatedUsing = OnRep_VitalityMatrix)
+		FGameplayAttributeData VitalityMatrix;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, VitalityMatrix);
 
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_MaxHealth)
-		FGameplayAttributeData MaxHealth;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, MaxHealth);
-	#pragma endregion Health
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Vital", ReplicatedUsing = OnRep_EnergeticEndurance)
+		FGameplayAttributeData EnergeticEndurance;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, EnergeticEndurance);
 
-	#pragma region Stamina
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_Stamina)
-		FGameplayAttributeData Stamina;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Stamina);
-
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_MaxStamina)
-		FGameplayAttributeData MaxStamina;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, MaxStamina);
-	#pragma endregion Stamina
-
-	#pragma region Mana
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_Mana)
-		FGameplayAttributeData Mana;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Mana);
-
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_MaxMana)
-		FGameplayAttributeData MaxMana;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, MaxMana);
-	#pragma endregion Mana
-
-	#pragma region Armor
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_Armor)
-		FGameplayAttributeData Armor;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Armor);
-
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_MaxArmor)
-		FGameplayAttributeData MaxArmor;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, MaxArmor);
-	#pragma endregion Armor
-
-	#pragma region Shield
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_Shield)
-		FGameplayAttributeData Shield;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Shield);
-
-		UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_MaxShield)
-		FGameplayAttributeData MaxShield;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, MaxShield);
-	#pragma endregion Shield
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Vital", ReplicatedUsing = OnRep_ArcaneReservoir)
+		FGameplayAttributeData ArcaneReservoir;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, ArcaneReservoir);
+	
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Vital", ReplicatedUsing = OnRep_DefensiveSynchrony)
+		FGameplayAttributeData DefensiveSynchrony;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, DefensiveSynchrony);
+	
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Vital", ReplicatedUsing = OnRep_BarrierMatrix)
+		FGameplayAttributeData BarrierMatrix;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, BarrierMatrix);
 
 	#pragma region Vital_OnReps
-		// Vital - OnReps
 		UFUNCTION()
-		void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
+		void OnRep_VitalityMatrix(const FGameplayAttributeData& OldVM) const;
 		UFUNCTION()
-		void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth) const;
+		void OnRep_EnergeticEndurance(const FGameplayAttributeData& OldEE) const;
 		UFUNCTION()
-		void OnRep_Stamina(const FGameplayAttributeData& OldStamina) const;
+		void OnRep_ArcaneReservoir(const FGameplayAttributeData& OldAR) const;
 		UFUNCTION()
-		void OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina) const;
+		void OnRep_DefensiveSynchrony(const FGameplayAttributeData& OldDS) const;
 		UFUNCTION()
-		void OnRep_Mana(const FGameplayAttributeData& OldMana) const;
-		UFUNCTION()
-		void OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana) const;
-		UFUNCTION()
-		void OnRep_Armor(const FGameplayAttributeData& OldArmor) const;
-		UFUNCTION()
-		void OnRep_MaxArmor(const FGameplayAttributeData& OldMaxArmor) const;
-		UFUNCTION()
-		void OnRep_Shield(const FGameplayAttributeData& OldShield) const;
-		UFUNCTION()
-		void OnRep_MaxShield(const FGameplayAttributeData& OldMaxShield) const;
+		void OnRep_BarrierMatrix(const FGameplayAttributeData& OldBM) const;
 	#pragma endregion Vital_OnReps
 #pragma endregion VitalAttributes
 
 // Primary - Gameplay Attributes
 #pragma region PrimaryAttributes
 	#pragma region Stats
-		UPROPERTY(BlueprintReadOnly, Category = "Primary Attributes", ReplicatedUsing = OnRep_Str)
-		FGameplayAttributeData Str;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Str);
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Primary", ReplicatedUsing = OnRep_Physique)
+		FGameplayAttributeData Physique;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Physique);
 
-		UPROPERTY(BlueprintReadOnly, Category = "Primary Attributes", ReplicatedUsing = OnRep_Dex)
-		FGameplayAttributeData Dex;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Dex);
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Primary", ReplicatedUsing = OnRep_Adaptivity)
+		FGameplayAttributeData Adaptivity;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Adaptivity);
 
-		UPROPERTY(BlueprintReadOnly, Category = "Primary Attributes", ReplicatedUsing = OnRep_Con)
-		FGameplayAttributeData Con;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Con);
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Primary", ReplicatedUsing = OnRep_NeuralAgility)
+		FGameplayAttributeData NeuralAgility;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, NeuralAgility);
 
-		UPROPERTY(BlueprintReadOnly, Category = "Primary Attributes", ReplicatedUsing = OnRep_Int)
-		FGameplayAttributeData Int;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Int);
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Primary", ReplicatedUsing = OnRep_EmpathicResonance)
+		FGameplayAttributeData EmpathicResonance;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, EmpathicResonance);
 
-		UPROPERTY(BlueprintReadOnly, Category = "Primary Attributes", ReplicatedUsing = OnRep_Wis)
-		FGameplayAttributeData Wis;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Wis);
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Primary", ReplicatedUsing = OnRep_EssenceControl)
+		FGameplayAttributeData EssenceControl;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, EssenceControl);
 
-		UPROPERTY(BlueprintReadOnly, Category = "Primary Attributes", ReplicatedUsing = OnRep_Cha)
-		FGameplayAttributeData Cha;
-		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Cha);
+		UPROPERTY(BlueprintReadOnly, Category = "Attributes|Primary", ReplicatedUsing = OnRep_Nanomancy)
+		FGameplayAttributeData Nanomancy;
+		ATTRIBUTE_ACCESSORS(UECMAttributeSet, Nanomancy);
 	#pragma endregion Stats
 	
 	#pragma region Priamry_OnReps
 		// Vital - OnReps
 		UFUNCTION()
-		void OnRep_Str(const FGameplayAttributeData& OldStr) const;
+		void OnRep_Physique(const FGameplayAttributeData& OldPhy) const;
 		UFUNCTION()
-		void OnRep_Dex(const FGameplayAttributeData& OldDex) const;
+		void OnRep_Adaptivity(const FGameplayAttributeData& OldAD) const;
 		UFUNCTION()
-		void OnRep_Con(const FGameplayAttributeData& OldCon) const;
+		void OnRep_NeuralAgility(const FGameplayAttributeData& OldNA) const;
 		UFUNCTION()
-		void OnRep_Int(const FGameplayAttributeData& OldInt) const;
+		void OnRep_EmpathicResonance(const FGameplayAttributeData& OldER) const;
 		UFUNCTION()
-		void OnRep_Wis(const FGameplayAttributeData& OldWis) const;
+		void OnRep_EssenceControl(const FGameplayAttributeData& OldEC) const;
 		UFUNCTION()
-		void OnRep_Cha(const FGameplayAttributeData& OldCha) const;
+		void OnRep_Nanomancy(const FGameplayAttributeData& OldNM) const;
 	#pragma endregion Priamry_OnReps
 #pragma endregion PrimaryAttributes
 
 // Secondary - Gameplay Attributes
 #pragma region SecondaryAttributes
+	#pragma region Stats
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_VMCapacity)
+	FGameplayAttributeData VMCapacity;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, VMCapacity);
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_VMRecovery)
+	FGameplayAttributeData VMRecovery;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, VMRecovery);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_EECapacity)
+	FGameplayAttributeData EECapacity;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, EECapacity);
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_EERecovery)
+	FGameplayAttributeData EERecovery;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, EERecovery);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_ARCapacity)
+	FGameplayAttributeData ARCapacity;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, ARCapacity);
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_ARRecovery)
+	FGameplayAttributeData ARRecovery;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, ARRecovery);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_KineticAbsorption)
+	FGameplayAttributeData KineticAbsorption;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, KineticAbsorption);
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_NanoshieldThreshold)
+	FGameplayAttributeData NanoshieldThreshold;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, NanoshieldThreshold);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_ResonanceSyncQuality)
+	FGameplayAttributeData ResonanceSyncQuality;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, ResonanceSyncQuality);
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_ResonanceAmplification)
+	FGameplayAttributeData ResonanceAmplification;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, ResonanceAmplification);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_EmpathicInfluence)
+	FGameplayAttributeData EmpathicInfluence;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, EmpathicInfluence);
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_TechnologicalInterface)
+	FGameplayAttributeData TechnologicalInterface;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, TechnologicalInterface);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_SignalStealth)
+	FGameplayAttributeData SignalStealth;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, SignalStealth);
 	
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_ReactionSpeed)
+	FGameplayAttributeData ReactionSpeed;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, ReactionSpeed);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Secondary", ReplicatedUsing = OnRep_DimensionalPocketCapacity)
+	FGameplayAttributeData DimensionalPocketCapacity;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, DimensionalPocketCapacity);
+#pragma endregion Stats
+	
+	#pragma region Secondary_OnReps
+	// Vital - OnReps
+	UFUNCTION()
+	void OnRep_VMCapacity(const FGameplayAttributeData& OldVMC) const;
+	UFUNCTION()
+	void OnRep_VMRecovery(const FGameplayAttributeData& OldVMR) const;
+	UFUNCTION()
+	void OnRep_EECapacity(const FGameplayAttributeData& OldEEC) const;
+	UFUNCTION()
+	void OnRep_EERecovery(const FGameplayAttributeData& OldEER) const;
+	UFUNCTION()
+	void OnRep_ARCapacity(const FGameplayAttributeData& OldARC) const;
+	UFUNCTION()
+	void OnRep_ARRecovery(const FGameplayAttributeData& OldARR) const;
+	UFUNCTION()
+	void OnRep_KineticAbsorption(const FGameplayAttributeData& OldKA) const;
+	UFUNCTION()
+	void OnRep_NanoshieldThreshold(const FGameplayAttributeData& OldNST) const;
+	UFUNCTION()
+	void OnRep_ResonanceSyncQuality(const FGameplayAttributeData& OldRSQ) const;
+	UFUNCTION()
+	void OnRep_ResonanceAmplification(const FGameplayAttributeData& OldRA) const;
+	UFUNCTION()
+	void OnRep_EmpathicInfluence(const FGameplayAttributeData& OldEI) const;
+	UFUNCTION()
+	void OnRep_TechnologicalInterface(const FGameplayAttributeData& OldTI) const;
+	UFUNCTION()
+	void OnRep_SignalStealth(const FGameplayAttributeData& OldSS) const;
+	UFUNCTION()
+	void OnRep_ReactionSpeed(const FGameplayAttributeData& OldRS) const;
+	UFUNCTION()
+	void OnRep_DimensionalPocketCapacity(const FGameplayAttributeData& OldDPC) const;
+	#pragma endregion Secondary_OnReps
 #pragma endregion SecondaryAttributes
 
 // Tertiary - Gameplay Attributes
-#pragma region TertiaryyAttributes
+#pragma region TertiaryAttributes
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Tertiary", ReplicatedUsing = OnRep_Level)
+	FGameplayAttributeData Level;
+	ATTRIBUTE_ACCESSORS(UECMAttributeSet, Level);
 	
+	UFUNCTION()
+	void OnRep_Level(const FGameplayAttributeData& Oldlevel) const;
 #pragma endregion TertiaryAttributes
-
+	
 private:
 	static void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties &Props);
+
+	// Container for Attribute Mappings
+	static TArray<AttributeFunctionMappings> GetVitalValvesMappings();
+	static TArray<AttributeFunctionMappings> GetPrimaryValvesMappings();
+
+	// Maximum valve for Primary Attributes
+	UPROPERTY(VisibleAnywhere,Category="Attributes")
+	float MaxPrimaryAttribute = 20.f;
 };

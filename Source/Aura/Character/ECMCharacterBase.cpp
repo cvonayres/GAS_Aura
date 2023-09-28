@@ -2,6 +2,7 @@
 
 #include "ECMCharacterBase.h"
 
+#include "AbilitySystemComponent.h"
 #include "Aura/Aura.h"
 
 AECMCharacterBase::AECMCharacterBase()
@@ -25,6 +26,22 @@ void AECMCharacterBase::BeginPlay()
 
 void AECMCharacterBase::InitAbilityActorInfo()
 {
+}
+
+void AECMCharacterBase::InitDefaultAttributes() const
+{
+	ApplyEffectToSelf(DefaultPrimaryAttributes, 1.f);
+	ApplyEffectToSelf(DefaultSecondaryAttributes, 1.f);
+}
+
+void AECMCharacterBase::ApplyEffectToSelf(const TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const
+{
+	check(IsValid(GetAbilitySystemComponent()));
+	check(GameplayEffectClass);
+	
+	const FGameplayEffectContextHandle ContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
+	const FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(GameplayEffectClass,Level,ContextHandle);
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(),AbilitySystemComponent);
 }
 
 void AECMCharacterBase::HighlightActor()
